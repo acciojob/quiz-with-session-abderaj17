@@ -1,5 +1,8 @@
-//your JS code here.
-
+ 
+const questionsElement = document.getElementById('questions');
+const scoreElement = document.getElementById('score');
+const submitBtn = document.getElementById('submit');
+ 
 // Do not change code below this line
 // This code will just display the questions to the screen
 const questions = [
@@ -29,46 +32,60 @@ const questions = [
     answer: "Ottawa",
   },
 ];
-
+ 
+let score = JSON.parse(localStorage.getItem('score')) || 0;
+ 
+// Initialize userAnswers properly
+let userAnswers = JSON.parse(sessionStorage.getItem('quizAnswer')) || new Array(questions.length).fill(null);
+ 
 // Display the quiz questions and choices
-const userAnswers = new Array(questions.length).fill(null);
-	const questionsElement = document.getElementById("questions");
 function renderQuestions() {
-	
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i];
     const questionElement = document.createElement("div");
     const questionText = document.createTextNode(question.question);
     questionElement.appendChild(questionText);
-    for (let j = 0; j < question.choices.length; j++) { 
+ 
+    for (let j = 0; j < question.choices.length; j++) {
       const choice = question.choices[j];
       const choiceElement = document.createElement("input");
-		choiceElement.addEventListener('change', function(){
-			userAnswers[i]=choice;
-			sessionStorage.setItem('progress', JSON.stringify(userAnswers));
-		});
       choiceElement.setAttribute("type", "radio");
       choiceElement.setAttribute("name", `question-${i}`);
       choiceElement.setAttribute("value", choice);
-      if (userAnswers[i] === choice) {
+ 
+      // if user clicks on answer, check the score
+      choiceElement.onchange = function () {
+        if (question.answer === choice) {
+          score += 1;
+          localStorage.setItem('score', JSON.stringify(score));
+        }
+        // add the answer to the answer array for session
+        userAnswers[i] = choice;
+        // save any change to session storage
+        sessionStorage.setItem('quizAnswer', JSON.stringify(userAnswers));
+      };
+ 
+      // Check if the answer is already selected from session storage
+      if (userAnswers[i] && userAnswers[i] === choice) {
         choiceElement.setAttribute("checked", true);
       }
+ 
       const choiceText = document.createTextNode(choice);
-		
       questionElement.appendChild(choiceElement);
       questionElement.appendChild(choiceText);
     }
     questionsElement.appendChild(questionElement);
   }
 }
-document.getElementById('submit').addEventListener('click', function (){
-	let score = 0;
-	for(let i = 0; i<questions.length; i++){
-		if(userAnswers[i]===questions[i].answer){
-			score++;
-		}
-	}
-	document.getElementById('score').textContent =`Your score is ${score} out of ${questions.length}.`;
-	localStorage.setItem('score', score);
-});
+ 
 renderQuestions();
+ 
+if(localStorage.getItem('score')){
+    score = JSON.parse(localStorage.getItem('score'));
+    scoreElement.textContent = `Your score is ${score} out of 5.`;
+}
+ 
+submitBtn.addEventListener('click', () => {
+  score = JSON.parse(localStorage.getItem('score'));
+  scoreElement.textContent = `Your score is ${score} out of 5.`;
+});
